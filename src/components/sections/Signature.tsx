@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRef } from "react";
 import { gsap, mq, useGSAP } from "@/lib/gsap";
+import { deferInit } from "@/lib/deferInit";
 import { assets } from "@/config/assets";
 import { Sparkle, WaveEdge } from "@/components/ui/Graphics";
 
@@ -86,7 +87,8 @@ export function Signature() {
   const root = useRef<HTMLElement>(null);
 
   useGSAP(
-    () => {
+    // Abaixo da dobra: inicializa depois do 1º paint (ver lib/deferInit).
+    (context) => deferInit(context, () => {
       const q = gsap.utils.selector(root);
       const mm = gsap.matchMedia();
 
@@ -183,7 +185,7 @@ export function Signature() {
       });
 
       return () => mm.revert();
-    },
+    }),
     { scope: root },
   );
 

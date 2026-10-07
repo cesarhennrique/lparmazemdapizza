@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { gsap, mq, ScrollTrigger, SplitText, useGSAP } from "@/lib/gsap";
+import { deferInit } from "@/lib/deferInit";
 import { Scribble, Sparkle } from "@/components/ui/Graphics";
 
 const marquee = ["Delivery ou retirada", "Domingo a domingo", "18h às 22h", "Uma fatia? Duvido.", "Felicidade na caixa"];
@@ -18,7 +19,8 @@ export function Manifesto() {
   const track = useRef<HTMLDivElement>(null);
 
   useGSAP(
-    () => {
+    // Abaixo da dobra: inicializa depois do 1º paint (ver lib/deferInit).
+    (context) => deferInit(context, () => {
       const q = gsap.utils.selector(root);
       const mm = gsap.matchMedia();
 
@@ -55,7 +57,7 @@ export function Manifesto() {
       });
 
       return () => mm.revert();
-    },
+    }),
     { scope: root },
   );
 

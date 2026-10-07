@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRef } from "react";
 import { gsap, mq, SplitText, useGSAP } from "@/lib/gsap";
+import { deferInit } from "@/lib/deferInit";
 import { assets } from "@/config/assets";
 import { HandArrow, Sparkle } from "@/components/ui/Graphics";
 
@@ -50,7 +51,8 @@ export function HowTo() {
   const root = useRef<HTMLElement>(null);
 
   useGSAP(
-    () => {
+    // Abaixo da dobra: inicializa depois do 1º paint (ver lib/deferInit).
+    (context) => deferInit(context, () => {
       const q = gsap.utils.selector(root);
       const mm = gsap.matchMedia();
 
@@ -162,7 +164,7 @@ export function HowTo() {
       });
 
       return () => mm.revert();
-    },
+    }),
     { scope: root },
   );
 

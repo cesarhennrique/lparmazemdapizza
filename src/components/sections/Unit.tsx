@@ -2,6 +2,7 @@
 
 import { useRef, useSyncExternalStore } from "react";
 import { gsap, mq, SplitText, useGSAP } from "@/lib/gsap";
+import { deferInit } from "@/lib/deferInit";
 import { site } from "@/config/site";
 import { OrderButton, StickerButton } from "@/components/ui/StickerButton";
 import { RoundSticker, Sparkle, WaveEdge } from "@/components/ui/Graphics";
@@ -46,7 +47,8 @@ export function Unit() {
   const status = useOpenStatus();
 
   useGSAP(
-    () => {
+    // Abaixo da dobra: inicializa depois do 1º paint (ver lib/deferInit).
+    (context) => deferInit(context, () => {
       const q = gsap.utils.selector(root);
       const mm = gsap.matchMedia();
       mm.add(mq.motion, () => {
@@ -66,7 +68,7 @@ export function Unit() {
           .from(q("[data-seal]"), { scale: 0, rotation: -120, duration: 0.7, ease: "back.out(1.8)" }, 0.9);
       });
       return () => mm.revert();
-    },
+    }),
     { scope: root },
   );
 

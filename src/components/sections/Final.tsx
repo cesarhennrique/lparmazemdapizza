@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRef } from "react";
 import { gsap, mq, useGSAP } from "@/lib/gsap";
+import { deferInit } from "@/lib/deferInit";
 import { assets } from "@/config/assets";
 import { site } from "@/config/site";
 import { OrderButton } from "@/components/ui/StickerButton";
@@ -24,7 +25,8 @@ export function Final() {
   const root = useRef<HTMLElement>(null);
 
   useGSAP(
-    () => {
+    // Abaixo da dobra: inicializa depois do 1º paint (ver lib/deferInit).
+    (context) => deferInit(context, () => {
       const q = gsap.utils.selector(root);
       const mm = gsap.matchMedia();
       mm.add(mq.motion, () => {
@@ -40,7 +42,7 @@ export function Final() {
           .from(q("[data-seal]"), { scale: 0, rotation: -120, duration: 0.7, ease: "back.out(1.6)" }, 1.05);
       });
       return () => mm.revert();
-    },
+    }),
     { scope: root },
   );
 
