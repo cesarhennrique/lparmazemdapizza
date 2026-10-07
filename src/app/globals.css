@@ -1,0 +1,169 @@
+@import "tailwindcss";
+
+/* ───────────── Design tokens ───────────── */
+@theme {
+  /* Cores — extraídas do logo, da caixa e do Instagram */
+  --color-tomato: #ee2e31;        /* vermelho principal (perfil/IG) */
+  --color-tomato-deep: #c11d22;   /* sombras e contraste */
+  --color-butter: #f9d152;        /* amarelo do logo */
+  --color-mustard: #f0b42c;       /* amarelo da caixa */
+  --color-ink: #141110;           /* preto quente */
+  --color-cream: #fff4e0;         /* papel / massa */
+  --color-crust: #d98a2b;         /* borda da pizza */
+
+  /* Tipografia */
+  --font-display: var(--font-anton), "Impact", "Arial Narrow", sans-serif;
+  --font-sans: var(--font-bricolage), system-ui, sans-serif;
+  --font-hand: var(--font-caveat), "Comic Sans MS", cursive;
+
+  /* Escala fluida (mobile 390 → desktop 1920) */
+  --text-mega: clamp(4.25rem, 14.5vw, 17rem);
+  --text-giant: clamp(3.25rem, 10vw, 11rem);
+  --text-huge: clamp(2.5rem, 6.4vw, 7rem);
+  --text-big: clamp(1.9rem, 3.6vw, 3.75rem);
+  --text-lead: clamp(1.125rem, 1.35vw, 1.4rem);
+
+  --ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+:root {
+  --gutter: clamp(1rem, 3.2vw, 3rem);
+  /* ── Header ──────────────────────────────────────────────
+     Barra compacta + logo maior que a barra (overlap) + aba preta atrás
+     da parte que ultrapassa. 0.963 = base do conteúdo dentro do PNG.
+     --header-safe-area = recuo mínimo para conteúdo em repouso no topo
+     de uma seção (pins/heros). Só use onde há conteúdo no topo. */
+  --header-height: 56px;
+  --header-logo-h: 74px; /* altura do PNG (inclui margem transparente) */
+  --header-logo-overlap: calc(var(--header-logo-h) * 0.963 - var(--header-height));
+  --header-tab-pad: 8px; /* aba preta abaixo do logo */
+  --header-safe-area: calc(var(--header-height) + var(--header-logo-overlap) + var(--header-tab-pad) + 14px);
+
+  /* ── Camadas globais ──
+     Cada seção é um contexto isolado (z-index internos não vazam);
+     o header é a única camada global acima delas. */
+  --z-header: 100;
+
+  --sticker-shadow: 0.28em 0.32em 0 var(--color-ink);
+  color-scheme: light;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --header-height: 64px;
+    --header-logo-h: 92px;
+  }
+}
+@media (min-width: 1024px) {
+  :root {
+    /* Fluido entre 1440 e 1920: barra 70→78px, logo 106→120px. */
+    --header-height: clamp(70px, 4.86vw, 78px);
+    --header-logo-h: clamp(106px, 7.36vw, 120px);
+  }
+}
+
+main section {
+  isolation: isolate;
+}
+
+
+html {
+  background: var(--color-ink);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-tomato);
+  color: var(--color-cream);
+  font-family: var(--font-sans);
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Lenis */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
+::selection {
+  background: var(--color-butter);
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-butter);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+img {
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ───────────── Utilitários de marca ───────────── */
+@utility font-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.005em;
+  line-height: 0.86;
+  text-transform: uppercase;
+}
+
+@utility gutter {
+  padding-inline: var(--gutter);
+}
+
+/* Texto vazado (atravessa planos no Signature) */
+@utility text-outline {
+  color: transparent;
+  -webkit-text-stroke: clamp(1.5px, 0.16vw, 3px) var(--stroke, var(--color-cream));
+}
+
+/* Máscaras do SplitText: folga vertical para acentos (Ã, É) não serem cortados */
+.sw-mask,
+.sl-mask {
+  padding-block: 0.16em 0.04em;
+  margin-block: -0.16em -0.04em;
+}
+
+/* Máscara do título de "Como pedir": folga maior para acentos (FÁCIL, ÚLTIMA) */
+.hw-mask {
+  padding-block: 0.2em 0.05em;
+  margin-block: -0.2em -0.05em;
+}
+
+/* Xadrez do papel de pizza (gerado em CSS: sem asset) */
+@utility checker {
+  --c1: var(--color-tomato);
+  --c2: var(--color-cream);
+  --s: clamp(18px, 2.4vw, 34px);
+  background-color: var(--c2);
+  background-image:
+    conic-gradient(var(--c1) 25%, transparent 0 50%, var(--c1) 0 75%, transparent 0);
+  background-size: calc(var(--s) * 2) calc(var(--s) * 2);
+}
+
+/* Estado inicial "antes do JS" para evitar flash de elementos animados */
+.js-ready [data-intro] {
+  visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js-ready [data-intro] {
+    visibility: visible;
+  }
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+}
