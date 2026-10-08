@@ -69,7 +69,11 @@ function wedgeDir(i: number) {
 }
 
 /**
- * SIGNATURE MOMENT (pin + scrub)
+ * SIGNATURE MOMENT (pré-pin + pin + scrub; pin desktop +=220%, mobile +=165%)
+ *
+ * Os tempos abaixo são os da timeline original. O trecho 0 → 0.14 (pizza
+ * chegando) roda no pré-pin, enquanto a seção sobe; o resto é remapeado
+ * por T()/D() dentro do pin.
  *
  *   0.00 → 0.14  pizza sobe girando; palavra entra pela direita
  *   0.00 → 0.90  rotação contínua da pizza (+200°)
@@ -103,51 +107,71 @@ export function Signature() {
         const items = q("[data-callout]");
         const spread = desktop ? 0.055 : 0.04;
 
+        // Retiming: a chegada da pizza (antes 0 → 0.14 do pin) acontece agora
+        // enquanto a seção sobe (pré-pin). O pin começa com a pizza montada e o
+        // restante da timeline original é remapeado por T()/D().
+        const E = 0.14;
+        const T = (t: number) => (t - E) / (1 - E);
+        const D = (d: number) => d / (1 - E);
+
+        /* ── PRÉ-PIN: a pizza chega ─────────────────── */
+        // [data-lift] só é animado aqui (a saída usa [data-grow]): nenhuma
+        // propriedade é disputada entre as duas timelines.
+        gsap.fromTo(
+          q("[data-lift]"),
+          { yPercent: 75, scale: 0.55 },
+          {
+            yPercent: 0,
+            scale: 1,
+            ease: "power1.out",
+            scrollTrigger: { trigger: root.current, start: "top 80%", end: "top top", scrub: 0.9 },
+          },
+        );
+
+        /* ── PIN ────────────────────────────────────── */
         const tl = gsap.timeline({
           defaults: { ease: "none" },
           scrollTrigger: {
             trigger: root.current,
             start: "top top",
-            end: desktop ? "+=320%" : "+=230%",
+            end: desktop ? "+=220%" : "+=165%",
             pin: true,
             scrub: 0.9,
             invalidateOnRefresh: true,
           },
         });
 
-        // entrada
-        tl.fromTo(q("[data-lift]"), { yPercent: 75, scale: 0.55 }, { yPercent: 0, scale: 1, duration: 0.14, ease: "power3.out" }, 0)
-          .fromTo(q("[data-spin]"), { rotation: -120 }, { rotation: 200, duration: 0.9 }, 0)
+        tl.fromTo(q("[data-spin]"), { rotation: -120 }, { rotation: 200, duration: T(0.9) }, 0)
           .fromTo(words, { xPercent: 28 }, { xPercent: -28, duration: 1 }, 0)
-          .from(q("[data-shadow]"), { autoAlpha: 0, scale: 0.4, duration: 0.14 }, 0)
-          .from(q("[data-kicker]"), { autoAlpha: 0, y: 30, duration: 0.08 }, 0.06);
+          .from(q("[data-shadow]"), { autoAlpha: 0, scale: 0.4, duration: 0.04 }, 0)
+          .from(q("[data-kicker]"), { autoAlpha: 0, y: 30, duration: 0.05 }, 0);
 
         // abre em fatias
         wedges.forEach((w, i) => {
           const d = wedgeDir(i);
-          tl.to(w, { x: () => d.x * size() * spread, y: () => d.y * size() * spread, duration: 0.14, ease: "power2.out" }, 0.16);
+          tl.to(w, { x: () => d.x * size() * spread, y: () => d.y * size() * spread, duration: D(0.14), ease: "power2.out" }, T(0.16));
         });
 
         // callouts (+ conector desenhado no desktop)
         const links = q("[data-link]");
         items.forEach((el, i) => {
-          const at = 0.28 + i * (desktop ? 0.075 : 0.08);
-          tl.fromTo(el, { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 0.06, ease: "power2.out" }, at);
+          const at = T(0.28 + i * (desktop ? 0.075 : 0.08));
+          tl.fromTo(el, { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: D(0.06), ease: "power2.out" }, at);
           if (desktop && links[i]) {
             tl.fromTo(
               links[i].querySelectorAll("[data-draw]"),
               { strokeDasharray: 1, strokeDashoffset: 1 },
-              { strokeDashoffset: 0, duration: 0.07, ease: "power2.inOut" },
-              at + 0.02,
+              { strokeDashoffset: 0, duration: D(0.07), ease: "power2.inOut" },
+              at + D(0.02),
             ).fromTo(
               links[i].querySelectorAll("[data-dot]"),
               { scale: 0, transformOrigin: "50% 50%" },
-              { scale: 1, duration: 0.03 },
-              at + 0.08,
+              { scale: 1, duration: D(0.03) },
+              at + D(0.08),
             );
           }
           if (!desktop && i < items.length - 1) {
-            tl.to(el, { autoAlpha: 0, y: -16, duration: 0.05 }, 0.28 + (i + 1) * 0.08 - 0.01);
+            tl.to(el, { autoAlpha: 0, y: -16, duration: D(0.05) }, T(0.28 + (i + 1) * 0.08 - 0.01));
           }
         });
 
@@ -160,28 +184,30 @@ export function Signature() {
             x: () => hd.x * size() * 0.16,
             y: () => hd.y * size() * 0.16,
             scale: 1.05,
-            duration: 0.1,
+            duration: D(0.1),
             ease: "power2.inOut",
           },
-          0.38,
+          T(0.38),
         ).to(
           wedges[HERO_WEDGE],
-          { x: () => hd.x * size() * spread, y: () => hd.y * size() * spread, scale: 1, duration: 0.07, ease: "power2.inOut" },
-          0.53,
+          { x: () => hd.x * size() * spread, y: () => hd.y * size() * spread, scale: 1, duration: D(0.07), ease: "power2.inOut" },
+          T(0.53),
         );
 
         // fecha
-        tl.to(wedges, { x: 0, y: 0, scale: 1, duration: 0.12, ease: "power2.inOut" }, 0.63)
-          .to([...items, ...links], { autoAlpha: 0, duration: 0.05 }, 0.63)
-          .to(q("[data-grow]"), { scale: desktop ? 1.18 : 1.12, duration: 0.16 }, 0.72);
+        tl.to(wedges, { x: 0, y: 0, scale: 1, duration: D(0.12), ease: "power2.inOut" }, T(0.63))
+          .to([...items, ...links], { autoAlpha: 0, duration: D(0.05) }, T(0.63))
+          .to(q("[data-grow]"), { scale: desktop ? 1.18 : 1.12, duration: D(0.16) }, T(0.72));
 
         // entrega para a próxima seção
-        tl.fromTo(q("[data-wipe]"), { yPercent: 100 }, { yPercent: 0, duration: 0.16, ease: "power2.inOut" }, 0.84)
-          .to(q("[data-word-back]"), { color: "var(--color-tomato)", duration: 0.14 }, 0.84)
-          .to(q("[data-word-front]"), { "--stroke": "#141110", duration: 0.14 }, 0.84)
-          .to(q("[data-kicker]"), { autoAlpha: 0, duration: 0.05 }, 0.66)
-          .to(q("[data-lift]"), { yPercent: -110, duration: 0.16, ease: "power2.in" }, 0.82)
-          .to(q("[data-shadow]"), { autoAlpha: 0, duration: 0.08 }, 0.84);
+        // (a subida final usa [data-grow]: mesmo deslocamento que antes em [data-lift],
+        //  que agora pertence só ao pré-pin)
+        tl.fromTo(q("[data-wipe]"), { yPercent: 100 }, { yPercent: 0, duration: D(0.16), ease: "power2.inOut" }, T(0.84))
+          .to(q("[data-word-back]"), { color: "var(--color-tomato)", duration: D(0.14) }, T(0.84))
+          .to(q("[data-word-front]"), { "--stroke": "#141110", duration: D(0.14) }, T(0.84))
+          .to(q("[data-kicker]"), { autoAlpha: 0, duration: D(0.05) }, T(0.66))
+          .to(q("[data-grow]"), { yPercent: -110, duration: D(0.16), ease: "power2.in" }, T(0.82))
+          .to(q("[data-shadow]"), { autoAlpha: 0, duration: D(0.08) }, T(0.84));
       });
 
       return () => mm.revert();

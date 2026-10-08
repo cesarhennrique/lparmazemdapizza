@@ -13,9 +13,9 @@ import { Sparkle } from "@/components/ui/Graphics";
  * `from`: fração do pin a partir da qual a zona começa (seções pinadas).
  */
 const LIGHT_ZONES: { id: string; from?: number }[] = [
-  { id: "inicio", from: 0.4 }, // Hero: fatia ocupa o centro e o amarelo cresce
+  { id: "inicio", from: 0.35 }, // Hero: fatia ocupa o centro e o amarelo cresce
   { id: "manifesto" },
-  { id: "a-pizza", from: 0.8 }, // Signature: onda creme no fim
+  { id: "a-pizza", from: 0.77 }, // Signature: onda creme no fim
   { id: "como-pedir" },
   { id: "onde-estamos" },
 ];

@@ -9,7 +9,8 @@ const marquee = ["Delivery ou retirada", "Domingo a domingo", "18h às 22h", "Um
 
 /**
  * MANIFESTO (calmo)
- * Pin curto; cada palavra acende de forma contínua (scrub).
+ * Pin curto (45% / 40% no mobile); cada palavra acende de forma contínua (scrub),
+ * começando já na subida da seção (top 35%) e terminando no fim do pin.
  *   0.00 → 0.85  palavras 14% → 100% de opacidade, em ordem
  *   0.70 → 0.95  rabisco sublinha "queijo pra puxar"
  * Depois: faixa xadrez com marquee que reage à velocidade do scroll.
@@ -26,13 +27,17 @@ export function Manifesto() {
 
       mm.add(mq.motion, () => {
         const split = SplitText.create(q("[data-manifesto]"), { type: "words", aria: "none" }) // <p> não aceita aria-label;
+        // Pin curto + timeline que já começa enquanto a seção sobe (top 35%):
+        // sem trecho "amarelo parado" entre o fim do Hero e a primeira palavra.
+        const pinEl = q("[data-pin]")[0];
+        const pinLen = () => window.innerHeight * (window.innerWidth < 640 ? 0.4 : 0.45);
+        ScrollTrigger.create({ trigger: pinEl, start: "top top", end: () => `+=${pinLen()}`, pin: true });
         const tl = gsap.timeline({
           defaults: { ease: "none" },
           scrollTrigger: {
-            trigger: q("[data-pin]")[0],
-            start: "top top",
-            end: "+=110%",
-            pin: true,
+            trigger: pinEl,
+            start: "top 35%",
+            end: () => `+=${window.innerHeight * 0.35 + pinLen()}`, // = fim do pin
             scrub: 0.6,
           },
         });

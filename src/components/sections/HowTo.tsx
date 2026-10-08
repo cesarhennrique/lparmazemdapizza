@@ -88,7 +88,11 @@ export function HowTo() {
             q("[data-box-in]"),
             { x: vw(desktop ? 32 : 40), y: vh(10), rotation: 16, duration: 1, ease: "power2.out" },
             0,
-          );
+          )
+          // Passo 01 entra já na subida da seção (antes: primeiros 8% do pin).
+          // Anima os FILHOS de s1; o pin anima o próprio s1 (sem disputa de propriedade).
+          .from(s1.children, { opacity: 0, y: 40, duration: 0.35, ease: "power3.out" }, 0.6)
+          .from(s1.querySelector("[data-num]"), { yPercent: 35, duration: 0.4, ease: "power3.out" }, 0.6);
 
         /* ── PIN: a composição muda a cada passo ───── */
         const tl = gsap.timeline({
@@ -96,7 +100,7 @@ export function HowTo() {
           scrollTrigger: {
             trigger: el,
             start: "top top",
-            end: desktop ? "+=200%" : "+=160%",
+            end: desktop ? "+=140%" : "+=110%",
             pin: true,
             scrub: 0.8,
             invalidateOnRefresh: true,
@@ -105,17 +109,16 @@ export function HowTo() {
 
         const stepIn = (s: Element, at: number) =>
           tl
-            .fromTo(s, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.08, ease: "power3.out" }, at)
-            .from(s.querySelector("[data-num]"), { yPercent: 35, duration: 0.1, ease: "power3.out" }, at);
+            .fromTo(s, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.09, ease: "power3.out" }, at)
+            .from(s.querySelector("[data-num]"), { yPercent: 35, duration: 0.11, ease: "power3.out" }, at);
         const stepOut = (s: Element, at: number) =>
-          tl.to(s, { opacity: 0, y: -30, duration: 0.06, ease: "power2.in" }, at);
+          tl.to(s, { opacity: 0, y: -30, duration: 0.07, ease: "power2.in" }, at);
 
-        // 01
-        stepIn(s1, 0);
+        // 01 já está visível (entrou no pré-pin): 0 → 0.10 é leitura.
 
         // 01 → 02
-        stepOut(s1, 0.26);
-        if (desktop) tl.to(q("[data-head]"), { y: vh(-6), opacity: 0, duration: 0.08, ease: "power2.in" }, 0.26);
+        stepOut(s1, 0.1);
+        if (desktop) tl.to(q("[data-head]"), { y: vh(-6), opacity: 0, duration: 0.09, ease: "power2.in" }, 0.1);
         tl.to(
           box,
           {
@@ -123,15 +126,15 @@ export function HowTo() {
             y: desktop ? vh(-4) : 0,
             rotation: -5,
             scale: 1.07,
-            duration: 0.16,
+            duration: 0.18,
             ease: "power2.inOut",
           },
-          0.26,
+          0.1,
         );
-        stepIn(s2, 0.34);
+        stepIn(s2, 0.19);
 
         // 02 → 03
-        stepOut(s2, 0.56);
+        stepOut(s2, 0.42);
         tl.to(
           box,
           {
@@ -139,28 +142,28 @@ export function HowTo() {
             y: desktop ? vh(5) : vh(1),
             rotation: 4,
             scale: desktop ? 1.4 : 1.14,
-            duration: 0.14,
+            duration: 0.16,
             ease: "power2.inOut",
           },
-          0.56,
+          0.42,
         );
-        stepIn(s3, 0.62);
+        stepIn(s3, 0.49);
 
         // 03 → saída: caixa ao centro, cresce; amarelo assume
-        stepOut(s3, 0.8);
-        if (!desktop) tl.to(q("[data-head]"), { opacity: 0, duration: 0.06 }, 0.8);
+        stepOut(s3, 0.72);
+        if (!desktop) tl.to(q("[data-head]"), { opacity: 0, duration: 0.07 }, 0.72);
         tl.to(
           box,
-          { x: () => toCenter().x, y: () => toCenter().y, rotation: 0, scale: maxScale, duration: 0.14, ease: "power2.inOut" },
-          0.8,
+          { x: () => toCenter().x, y: () => toCenter().y, rotation: 0, scale: maxScale, duration: 0.17, ease: "power2.inOut" },
+          0.72,
         )
           .fromTo(
             q("[data-fill]"),
             { clipPath: "circle(0% at 50% 50%)" },
-            { clipPath: "circle(75% at 50% 50%)", duration: 0.12, ease: "power2.inOut" },
-            0.84,
+            { clipPath: "circle(75% at 50% 50%)", duration: 0.15, ease: "power2.inOut" },
+            0.77,
           )
-          .to(box, { opacity: 0, duration: 0.08 }, 0.92);
+          .to(box, { opacity: 0, duration: 0.1 }, 0.9);
       });
 
       return () => mm.revert();

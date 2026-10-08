@@ -34,7 +34,9 @@ const GROUPS = [
  * Camadas de transform: [data-s] scroll · [data-intro]/[data-rise] entrada ·
  * [data-px] parallax do ponteiro · [data-float] respiração.
  *
- * Scroll (pin; desktop +=160%, tablet/mobile +=125%):
+ * Scroll (pin; desktop +=120%, tablet/mobile +=95%). Os tempos abaixo são os
+ * da timeline original; no código, T()/D() encolhem a leitura inicial (18% → 8%)
+ * e remapeiam o resto proporcionalmente:
  *   0.00 → 0.18  leitura (quase parado)
  *   0.18 → 0.42  fatia avança, cresce e gira; "DU" e "DO." abrem um pouco
  *   0.42 → 0.68  fatia ao centro; "UMA FATIA?" sai; DUVIDO se separa em 3 grupos
@@ -117,13 +119,17 @@ export function Hero() {
           });
           const maxScale = () => Math.min(1.6, (assets.heroSlice.width * 1.1) / slice.offsetWidth);
           const vw = (n: number) => () => (window.innerWidth * n) / 100;
+          // Retiming: a "leitura" inicial encolhe de 18% para 8% do pin (a entrada
+          // já é por tempo); o restante da timeline original é remapeado por T()/D().
+          const T = (t: number) => 0.08 + ((t - 0.18) * 0.92) / 0.82;
+          const D = (d: number) => (d * 0.92) / 0.82;
 
           const tl = gsap.timeline({
             defaults: { ease: "none" },
             scrollTrigger: {
               trigger: el,
               start: "top top",
-              end: desktop ? "+=160%" : "+=125%",
+              end: desktop ? "+=120%" : "+=95%",
               pin: true,
               scrub: 0.8,
               invalidateOnRefresh: true,
@@ -135,10 +141,10 @@ export function Hero() {
           });
 
           tl
-            // 0 → 0.18 · leitura
-            .to(slice, { scale: 1.02, duration: 0.18 }, 0)
-            .to(q("[data-s='bar']"), { autoAlpha: 0, y: 30, duration: 0.12 }, 0)
-            .to(q("[data-s='spark']"), { scale: 0, rotation: 90, duration: 0.12 }, 0.16)
+            // 0 → 0.08 · leitura
+            .to(slice, { scale: 1.02, duration: 0.08 }, 0)
+            .to(q("[data-s='bar']"), { autoAlpha: 0, y: 30, duration: 0.08 }, 0)
+            .to(q("[data-s='spark']"), { scale: 0, rotation: 90, duration: 0.1 }, 0.06)
 
             // 0.18 → 0.42 · fatia avança; a palavra "abre" para ela passar
             .to(
@@ -148,13 +154,13 @@ export function Hero() {
                 y: () => sliceToCenter().y * 0.2,
                 scale: 1.15,
                 rotation: 4,
-                duration: 0.24,
+                duration: D(0.24),
                 ease: "power1.inOut",
               },
-              0.18,
+              T(0.18),
             )
-            .to(group("L"), { x: vw(-1.5), duration: 0.24, ease: "power1.inOut" }, 0.18)
-            .to(group("R"), { x: vw(2), duration: 0.24, ease: "power1.inOut" }, 0.18)
+            .to(group("L"), { x: vw(-1.5), duration: D(0.24), ease: "power1.inOut" }, T(0.18))
+            .to(group("R"), { x: vw(2), duration: D(0.24), ease: "power1.inOut" }, T(0.18))
 
             // 0.42 → 0.68 · fatia ao centro; eyebrow sai; DUVIDO se separa
             .to(
@@ -164,33 +170,33 @@ export function Hero() {
                 y: () => sliceToCenter().y,
                 scale: () => maxScale() * 0.85,
                 rotation: -2,
-                duration: 0.26,
+                duration: D(0.26),
                 ease: "power2.inOut",
               },
-              0.42,
+              T(0.42),
             )
-            .to(q("[data-s='eyebrow']"), { y: () => -window.innerHeight * 0.12, autoAlpha: 0, duration: 0.18, ease: "power2.in" }, 0.42)
-            .to(group("L"), { x: vw(mobile ? -10 : -14), duration: 0.26, ease: "power2.inOut" }, 0.42)
-            .to(group("M"), { y: () => window.innerHeight * 0.06, autoAlpha: 0.35, duration: 0.26, ease: "power2.inOut" }, 0.42)
-            .to(group("R"), { x: vw(mobile ? 12 : 16), duration: 0.26, ease: "power2.inOut" }, 0.42)
+            .to(q("[data-s='eyebrow']"), { y: () => -window.innerHeight * 0.12, autoAlpha: 0, duration: D(0.18), ease: "power2.in" }, T(0.42))
+            .to(group("L"), { x: vw(mobile ? -10 : -14), duration: D(0.26), ease: "power2.inOut" }, T(0.42))
+            .to(group("M"), { y: () => window.innerHeight * 0.06, autoAlpha: 0.35, duration: D(0.26), ease: "power2.inOut" }, T(0.42))
+            .to(group("R"), { x: vw(mobile ? 12 : 16), duration: D(0.26), ease: "power2.inOut" }, T(0.42))
 
             // 0.68 → 0.84 · tipografia sai; pizza domina
-            .to(group("L"), { x: vw(-75), autoAlpha: 0, duration: 0.18, ease: "power2.in" }, 0.68)
-            .to(group("R"), { x: vw(75), autoAlpha: 0, duration: 0.18, ease: "power2.in" }, 0.68)
-            .to(group("M"), { y: () => window.innerHeight * 0.3, autoAlpha: 0, duration: 0.14, ease: "power2.in" }, 0.68)
-            .to(slice, { scale: maxScale, y: () => sliceToCenter().y - window.innerHeight * 0.08, rotation: -5, duration: 0.18 }, 0.68)
+            .to(group("L"), { x: vw(-75), autoAlpha: 0, duration: D(0.18), ease: "power2.in" }, T(0.68))
+            .to(group("R"), { x: vw(75), autoAlpha: 0, duration: D(0.18), ease: "power2.in" }, T(0.68))
+            .to(group("M"), { y: () => window.innerHeight * 0.3, autoAlpha: 0, duration: D(0.14), ease: "power2.in" }, T(0.68))
+            .to(slice, { scale: maxScale, y: () => sliceToCenter().y - window.innerHeight * 0.08, rotation: -5, duration: D(0.18) }, T(0.68))
             // 0.72 → 0.92 · o amarelo cresce atrás da fatia (centro da tela)
             .fromTo(
               q("[data-s='reveal']"),
               { clipPath: "circle(0% at 50% 50%)" },
-              { clipPath: "circle(75% at 50% 50%)", duration: 0.2, ease: "power2.inOut" },
-              0.72,
+              { clipPath: "circle(75% at 50% 50%)", duration: D(0.2), ease: "power2.inOut" },
+              T(0.72),
             )
             // 0.86 → 1 · a fatia avança e sobe para fora; o amarelo assume
             .to(
               slice,
-              { y: () => sliceToCenter().y - window.innerHeight * 1.15, rotation: -12, duration: 0.14, ease: "power2.in" },
-              0.86,
+              { y: () => sliceToCenter().y - window.innerHeight * 1.15, rotation: -12, duration: D(0.14), ease: "power2.in" },
+              T(0.86),
             );
 
           return () => {

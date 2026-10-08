@@ -69,8 +69,8 @@ export const site = {
    */
   nav: [
     { id: "inicio", label: "Início", progress: 0 },
-    { id: "a-pizza", label: "A pizza", progress: 0.15 },
-    { id: "como-pedir", label: "Como pedir", progress: 0.1 },
+    { id: "a-pizza", label: "A pizza", progress: 0.07 },
+    { id: "como-pedir", label: "Como pedir", progress: 0.02 },
     { id: "onde-estamos", label: "Onde estamos", progress: 0 },
   ],
 } as const;
